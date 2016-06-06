@@ -15,6 +15,7 @@
 #define _WCNSS_WLAN_H_
 
 #include <linux/device.h>
+#include <linux/sched.h>
 
 enum wcnss_opcode {
 	WCNSS_WLAN_SWITCH_OFF = 0,
@@ -31,6 +32,8 @@ struct wcnss_wlan_config {
 	int	is_pronto_vt;
 	int	is_pronto_v3;
 	void __iomem	*msm_wcnss_base;
+	int	iris_id;
+	int	vbatt;
 };
 
 enum {
@@ -48,6 +51,11 @@ enum {
 	WCNSS_WLAN_MAX_GPIO,
 };
 
+#define WCNSS_VBATT_THRESHOLD           3500000
+#define WCNSS_VBATT_GUARD               20000
+#define WCNSS_VBATT_HIGH                3700000
+#define WCNSS_VBATT_LOW                 3300000
+#define WCNSS_VBATT_INITIAL             3000000
 #define WCNSS_WLAN_IRQ_INVALID -1
 #define HAVE_WCNSS_SUSPEND_RESUME_NOTIFY 1
 #define HAVE_WCNSS_RESET_INTR 1
@@ -67,13 +75,6 @@ enum {
 #define WLAN_RF_DATA0_SHIFT		0
 #define WLAN_RF_DATA1_SHIFT		1
 #define WLAN_RF_DATA2_SHIFT		2
-
-#ifdef VENDOR_EDIT
-//Yadong.Hu@Prd.Svc.Wifi, 2015/05/01, Add for
-/* distinguish the type of wcnss and show firmware version */
-void set_wcnss_chip_type(u32 chip_id);
-#endif /* VENDOR_EDIT */
-
 #define PRONTO_PMU_OFFSET       0x1004
 #define WCNSS_PMU_CFG_GC_BUS_MUX_SEL_TOP   BIT(5)
 
@@ -107,6 +108,7 @@ int wcnss_hardware_type(void);
 void *wcnss_prealloc_get(unsigned int size);
 int wcnss_prealloc_put(void *ptr);
 void wcnss_reset_intr(void);
+void wcnss_reset_fiq(bool clk_chk_en);
 void wcnss_suspend_notify(void);
 void wcnss_resume_notify(void);
 void wcnss_riva_log_debug_regs(void);
@@ -119,6 +121,12 @@ void wcnss_riva_dump_pmic_regs(void);
 int wcnss_xo_auto_detect_enabled(void);
 u32 wcnss_get_wlan_rx_buff_count(void);
 int wcnss_wlan_iris_xo_mode(void);
+void wcnss_flush_work(struct work_struct *work);
+void wcnss_flush_delayed_work(struct delayed_work *dwork);
+int wcnss_get_iris_name(char *iris_version);
+void wcnss_en_wlan_led_trigger(void);
+void wcnss_dump_stack(struct task_struct *task);
+
 #ifdef CONFIG_WCNSS_REGISTER_DUMP_ON_BITE
 void wcnss_log_debug_regs_on_bite(void);
 #else
