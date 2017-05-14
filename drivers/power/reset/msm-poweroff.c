@@ -264,29 +264,25 @@ static void msm_restart_prepare(const char *cmd)
 
 	if (cmd != NULL) {
 		if (!strncmp(cmd, "bootloader", 10)) {
-#ifdef CONFIG_MACH_OPPO
-			if (is_project(OPPO_15011)) {
-				qpnp_silence_write(RTC_BOOT_MODE,
-						   RTC_FASTBOOT_MODE);
-			} else
-#endif
-			{
 				qpnp_pon_set_restart_reason(
 					PON_RESTART_REASON_BOOTLOADER);
-				__raw_writel(0x77665500, restart_reason);
-			}
-		} else if (!strncmp(cmd, "recovery", 8)) {
 #ifdef CONFIG_MACH_OPPO
-			if (is_project(OPPO_15011)) {
-				qpnp_silence_write(RTC_BOOT_MODE,
-						   RTC_RECOVERY_MODE);
-			} else
+				if (is_project(OPPO_15011))
+					qpnp_silence_write(RTC_BOOT_MODE,
+							   RTC_FASTBOOT_MODE);
+				else
 #endif
-			{
+				__raw_writel(0x77665500, restart_reason);
+		} else if (!strncmp(cmd, "recovery", 8)) {
 				qpnp_pon_set_restart_reason(
 					PON_RESTART_REASON_RECOVERY);
+#ifdef CONFIG_MACH_OPPO
+				if (is_project(OPPO_15011))
+					qpnp_silence_write(RTC_BOOT_MODE,
+							   RTC_RECOVERY_MODE);
+				else
+#endif
 				__raw_writel(0x77665502, restart_reason);
-			}
 		} else if (!strcmp(cmd, "rtc")) {
 			qpnp_pon_set_restart_reason(
 				PON_RESTART_REASON_RTC);
@@ -315,6 +311,7 @@ static void msm_restart_prepare(const char *cmd)
 		} else if (!strncmp(cmd, "edl", 3)) {
 			enable_emergency_dload_mode();
 		} else {
+			qpnp_pon_set_restart_reason(PON_RESTART_REASON_UNKNOWN);
 			__raw_writel(0x77665501, restart_reason);
 		}
 	}
